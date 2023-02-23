@@ -19,3 +19,9 @@ xcopy
 /BlazorPeliculas/Server/obj
 /BlazorPeliculas/Shared/bin
 /BlazorPeliculas/Shared/obj
+/BlazorWebAssemblyIdiomas/Client/bin
+/BlazorWebAssemblyIdiomas/Client/obj
+/BlazorWebAssemblyIdiomas/Server/bin
+/BlazorWebAssemblyIdiomas/Server/obj
+/BlazorWebAssemblyIdiomas/Shared/bin
+/BlazorWebAssemblyIdiomas/Shared/obj
