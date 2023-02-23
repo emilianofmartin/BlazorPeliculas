@@ -1,9 +1,17 @@
 ﻿@page "/"
+@inject IStringLocalizer<Resource> localizer
 
 <PageTitle>Index</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>@localizer["Greeting"]</h1>
 
-Welcome to your new app.
+@localizer["index.welcome"]
+
+<h4>Date sample: @DateTime.Today</h4>
+<h4>Amount sample: @price.ToString("C")</h4>
 
 <SurveyPrompt Title="How is Blazor working for you?" />
+
+@code {
+    decimal price = 123456.78m;
+}

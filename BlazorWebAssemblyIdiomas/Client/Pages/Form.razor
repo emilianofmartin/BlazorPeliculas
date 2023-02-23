@@ -1,0 +1,17 @@
+﻿@page "/form"
+@inject IStringLocalizer<Resource> localizer
+
+<h3>@localizer["Form.Form"]</h3>
+
+<EditForm Model="person">
+    <DataAnnotationsValidator />
+    <div>
+        @localizer["Form.Name"]:
+        <InputText @bind-Value="person.Name" />
+        <ValidationMessage For="@(() => person.Name)"></ValidationMessage>
+    </div>
+    <button>@localizer["Form.Send"]</button>
+</EditForm>
+@code {
+    Person person = new Person();
+}

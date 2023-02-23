@@ -1,0 +1,31 @@
+﻿@inject IJSRuntime js
+@inject NavigationManager navManager
+@using System.Globalization
+
+<strong>Culture</strong>
+<select @bind="culture">
+    @foreach(var item in cultures) {
+        <option value="@item">@item.DisplayName</option>
+    }
+</select>
+
+@code {
+    CultureInfo[] cultures = new[] {
+        new CultureInfo("en-US"),
+        new CultureInfo("es-AR"),
+        new CultureInfo("es"),
+        new CultureInfo("fr-FR")
+    };
+
+    CultureInfo culture {
+        get => CultureInfo.CurrentUICulture;
+        set {
+            if(CultureInfo.CurrentUICulture != value) {
+                var JsInProcessRuntime = (IJSInProcessRuntime)js; //Casteo para progr. síncrona
+                JsInProcessRuntime.InvokeVoid("culture.set", value.Name); //Cultura a guardar. Por ej: en-US
+
+                navManager.NavigateTo(navManager.Uri, forceLoad: true);
+            }
+        }
+    }
+}
