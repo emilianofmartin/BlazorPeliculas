@@ -1,0 +1,28 @@
+﻿@inject IJSRuntime js
+@inject NavigationManager navManager
+@using System.Globalization
+
+<strong>Culture</strong>
+<select @bind="culture">
+    @foreach(var item in cultures) {
+        <option value="@item">@item.DisplayName</option>
+    }
+</select>
+
+@code {
+    CultureInfo[] cultures = Constants.SupportedCultures;
+
+    CultureInfo culture {
+        get => CultureInfo.CurrentUICulture;
+        set {
+            if(CultureInfo.CurrentUICulture != value) {
+                var culture = value.Name;
+                var uri = new Uri(navManager.Uri)
+                    .GetComponents(UriComponents.PathAndQuery, UriFormat.Unescaped);
+                var query = $"?culture={Uri.EscapeDataString(culture)}&redirectURL={Uri.EscapeDataString(uri)}";
+
+                navManager.NavigateTo("/culture/SetCulture" + query, forceLoad: true);
+            }
+        }
+    }
+}
