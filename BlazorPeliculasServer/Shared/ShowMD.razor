@@ -1,0 +1,23 @@
+﻿@using Markdig
+
+@if(string.IsNullOrEmpty(MDContent)) {
+    if (LoadingTemplate is not null) {
+        @LoadingTemplate
+    }
+}
+else {
+    if(!string.IsNullOrEmpty(HTMLContent)) {
+        @((MarkupString) HTMLContent)
+    }
+}
+
+@code {
+    [Parameter] public string? MDContent { get; set; }
+    [Parameter] public RenderFragment LoadingTemplate { get; set; } = null!;
+    private string HTMLContent = null!;
+
+    protected override void OnParametersSet() {
+        if(MDContent is not null)
+            HTMLContent = Markdown.ToHtml(MDContent);
+    }
+}

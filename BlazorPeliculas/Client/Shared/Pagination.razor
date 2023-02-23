@@ -1,0 +1,69 @@
+﻿<nav>
+    <ul class="pagination justify-content-center">
+        @foreach(var link in Links) {
+            <li 
+                @onclick="@(() => InternalSelectedPage(link))"
+                style="cursor:pointer;"
+            class="page-item @(link.Enabled ? null : "disabled") @(link.Active ? "active" : null)">
+                <a class="page-link">@link.Text</a></li>
+        }
+    </ul>
+</nav>
+
+@code {
+    [Parameter] public int ActualPage { get; set; } = 1;
+    [Parameter] public int TotalPages { get; set; } = 1;
+    [Parameter] public int Radio { get; set; } = 3;
+    [Parameter] public EventCallback<int> SelectedPage { get; set; }
+    List<ModelPages> Links = new List<ModelPages>();
+
+    private async Task InternalSelectedPage(ModelPages modelPage) {
+        if(modelPage.page == ActualPage)
+            return;
+
+        if(!modelPage.Enabled)
+            return;
+
+        await SelectedPage.InvokeAsync(modelPage.page);
+    }
+
+    protected override void OnParametersSet() {
+        Links = new List<ModelPages>();
+
+        var prevLinkEnabled = ActualPage != 1;
+        var prevLinkPage = ActualPage - 1;
+        Links.Add(new ModelPages {
+            Text = "Previous",
+            page = prevLinkPage,
+            Enabled = prevLinkEnabled
+        });
+
+        int iStart = ActualPage - Radio;
+        if(iStart < 1) iStart = 1;
+
+        for(int i = iStart; i <= TotalPages; i++) {
+            if(i >= ActualPage - Radio && i <= ActualPage + Radio) {
+                Links.Add(new ModelPages {
+                    page = i,
+                    Active = ActualPage == i,
+                    Text = i.ToString()
+                });
+            }
+        }
+
+        var nextLinkEnabled = ActualPage != TotalPages;
+        var nextLinkPage = ActualPage + 1;
+        Links.Add(new ModelPages {
+                Text = "Next",
+                page = nextLinkPage,
+                Enabled = nextLinkEnabled
+            });
+    }
+
+    class ModelPages {
+        public string Text { get; set; } = null!;
+        public int page { get; set; }
+        public bool Enabled { get; set; } = true;
+        public bool Active { get; set; } = false!;
+    }
+}

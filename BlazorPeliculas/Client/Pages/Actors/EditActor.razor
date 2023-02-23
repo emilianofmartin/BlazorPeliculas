@@ -1,0 +1,47 @@
+﻿@page "/actors/edit/{ActorID:int}"
+@using Microsoft.AspNetCore.Authorization;
+@inject NavigationManager navManager
+@inject IRepository repository
+@inject SweetAlertService swAl
+@attribute [Authorize(Roles = "admin")]
+<h3>Edit actor</h3>
+
+@if(Actor is not null) {
+    <ActorsForm Actor="Actor" OnValidSubmit="Edit" />
+}
+else {
+    <LoadingWheel/>
+}
+
+@code {
+    [Parameter] public int ActorID { get; set; }
+    Actor? Actor;
+
+    protected override async Task OnInitializedAsync() {
+        var responseHTTP = await repository.Get<Actor>($"api/actors/{ActorID}");
+
+        if (responseHTTP.Error) {
+            if (responseHTTP.httpResponseMessage.StatusCode == System.Net.HttpStatusCode.NotFound)
+                navManager.NavigateTo("actors");
+            else {
+                var ErrMessage = await responseHTTP.GetErrMessage();
+                await swAl.FireAsync("Error", ErrMessage, SweetAlertIcon.Error);
+            }
+        }
+        else {
+            Actor = responseHTTP.Response;
+        }
+    }
+
+    private async Task Edit() {
+        var responseHTTP = await repository.Put("/api/actors", Actor);
+
+        if (responseHTTP.Error) {
+            var ErrMessage = await responseHTTP.GetErrMessage();
+            await swAl.FireAsync("Error", ErrMessage, SweetAlertIcon.Error);
+        }
+        else {
+            navManager.NavigateTo("/actors");
+        }
+    }
+}

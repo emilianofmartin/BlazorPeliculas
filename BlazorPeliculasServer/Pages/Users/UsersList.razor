@@ -1,0 +1,56 @@
+﻿@page "/users"
+@inject UsersRepository repository
+@inject NavigationManager navManager
+@inject SweetAlertService swAl
+
+<h3>Users List</h3>
+
+<Pagination ActualPage="currentPage" TotalPages="totalPages" SelectedPage="selectedPage"></Pagination>
+
+<GenericList List="Users">
+    <HasRecordsComplete>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>User</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach(var user in Users!) {
+                    <tr>
+                        <td>
+                            <a href="/users/edit/@user.ID" class="btn btn-success">Edit</a>
+                        </td>
+                        <td>
+                            @user.Email
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </HasRecordsComplete>
+</GenericList>
+
+
+@code {
+    List<UserDTO>? Users;
+    private int currentPage = 1;
+    private int totalPages;
+
+    protected override async Task OnInitializedAsync() {
+        await selectedPage(1);
+    }
+
+    private async Task selectedPage(int page) {
+        currentPage = page;
+        await Load(page);
+    }
+
+    private async Task Load(int page = 1) {
+        var paginatedResponse = await repository.Get(new DTOs.PaginationDTO { Page = page });
+
+        totalPages = paginatedResponse.totalPages;
+        Users = paginatedResponse.Records;
+    }
+}

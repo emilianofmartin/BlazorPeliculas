@@ -1,0 +1,49 @@
+﻿@page "/genres/edit/{GenreID:int}"
+@using Microsoft.AspNetCore.Authorization;
+@inject NavigationManager navManager
+@inject IRepository repository
+@inject SweetAlertService swAl
+@attribute [Authorize(Roles = "admin")]
+
+<h3>Edit genre</h3>
+@if(Genre is not null) {
+    <GenreForm @ref="genreForm" Genre="Genre" OnValidSubmit="Edit" />
+}
+else {
+    <LoadingWheel/>
+}
+
+@code {
+    [Parameter] public int GenreID { get; set; }
+    private Genre? Genre;
+    private GenreForm? genreForm;
+
+    protected override async Task OnInitializedAsync() {
+        var responseHTTP = await repository.Get<Genre>($"api/genres/{GenreID}");
+
+        if(responseHTTP.Error) {
+            if (responseHTTP.httpResponseMessage.StatusCode == System.Net.HttpStatusCode.NotFound)
+                navManager.NavigateTo("genres");
+            else {
+                var ErrMessage = await responseHTTP.GetErrMessage();
+                await swAl.FireAsync("Error", ErrMessage, SweetAlertIcon.Error);
+            }
+        }
+        else {
+            Genre = responseHTTP.Response;
+        }
+    }
+
+    private async Task Edit() {
+        var responseHTTP = await repository.Put("/api/genres", Genre);
+
+        if(responseHTTP.Error) {
+            var ErrMessage = await responseHTTP.GetErrMessage();
+            await swAl.FireAsync("Error", ErrMessage, SweetAlertIcon.Error);
+        }
+        else {
+            genreForm!.formPostedCorrectly = true;
+            navManager.NavigateTo("/genres");
+        }
+    }
+}

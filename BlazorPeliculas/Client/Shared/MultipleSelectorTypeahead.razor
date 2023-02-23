@@ -1,0 +1,67 @@
+﻿@using Blazored.Typeahead
+@typeparam T
+
+<BlazoredTypeahead TValue="T" TItem="T" SearchMethod="SearchMethod"
+                   Value="dummy" ValueChanged="SelectedElement"
+                   ValueExpression="@(() => dummy)">
+    <ResultTemplate>
+        @ResultTemplate(context)
+    </ResultTemplate>
+    <NotFoundTemplate>
+        @((MarkupString) NotFoundTemplate)
+    </NotFoundTemplate>
+    <SelectedTemplate></SelectedTemplate>
+</BlazoredTypeahead>
+
+<ul class="list-group">
+    @foreach(var item in SelectedElements) {
+        <li draggable="true"
+            @ondragstart="@(() => HandleDragStart(item))"
+            @ondragover="@(() => HandleDragover(item))"
+            class="list-group-item list-group-item-action">
+            @ListTemplate(item)
+            <span 
+                @onclick="@(() => SelectedElements.Remove(item))"
+                class="badge bg-primary rounded-pill" style="cursor:pointer">
+                X
+            </span>
+        </li>
+    }
+</ul>
+
+@code {
+    [Parameter, EditorRequired] public Func<string, Task<IEnumerable<T>>> SearchMethod { get;set;} = null!;
+    [Parameter] public List<T> SelectedElements { get; set; } = new List<T>();
+    [Parameter, EditorRequired] public RenderFragment<T> ResultTemplate { get; set; } = null!;
+    [Parameter, EditorRequired] public RenderFragment<T> ListTemplate { get; set; } = null!;
+    [Parameter, EditorRequired] public string NotFoundTemplate { get; set; } = "No records were found.";
+
+    T? dummy = default(T);
+    T? draggedItem;
+
+    private void SelectedElement(T item) {
+        if(!SelectedElements.Any(x => x.Equals(item))) {
+            //Es un elemento que no fue seleccionado anteriormente.
+            SelectedElements.Add(item);
+        }
+
+        //Para que al seleccionar se limpie el textbox
+        dummy = default(T);
+    }
+
+    private void HandleDragStart(T item) {
+        draggedItem = item;
+    }
+
+    private void HandleDragover(T item) {
+        if(draggedItem is null)
+            return;
+
+        if(!item.Equals(draggedItem)) {
+            var draggedIndex = SelectedElements.IndexOf(draggedItem);
+            var itemIndex = SelectedElements.IndexOf(item);
+            SelectedElements[itemIndex] = draggedItem;
+            SelectedElements[draggedIndex] = item;
+        }
+        }
+}

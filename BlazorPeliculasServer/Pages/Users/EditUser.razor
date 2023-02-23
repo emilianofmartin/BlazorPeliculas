@@ -1,0 +1,61 @@
+﻿@page "/users/edit/{UserID}"
+@inject UsersRepository repository
+@inject NavigationManager navManager
+@inject SweetAlertService swAl
+
+<h3>Edit User</h3>
+
+@if(roles is null) {
+    <LoadingWheel/>
+}
+else {
+    <div class="form-inline">
+        <select class="form-select mb-2" @bind="selectedRole">
+            <option value="0">-- Select a rol--</option>
+            @foreach(var rol in roles) {
+            <option value="@rol.Name">@rol.Name</option>                
+            }
+        </select>
+
+        <button class="btn btn-info mb-2" @onclick="AssignRole">Assign rol</button>
+        <button class="btn btn-danger mb-2" @onclick="RemoveRole">Remove rol</button>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string UserID { get; set; } = null!;
+    private List<RoleDTO>? roles;
+    private string selectedRole = "0";
+
+    protected override async Task OnInitializedAsync() {
+        var roles = await repository.GetRoles();
+    }
+
+    private async Task<bool> ValidateEditRole() {
+        if(selectedRole == "0") {
+            await swAl.FireAsync("Error", "You must select a role", SweetAlertIcon.Error);
+            return false;
+        }
+
+        return true;
+    }
+
+    private async Task AssignRole() {
+        if(!await ValidateEditRole())
+            return;
+
+        var roleDTO = new EditRolDTO() { Role = selectedRole, UserID = UserID };
+        await repository.AssignRoleToUser(roleDTO);
+        await swAl.FireAsync("Success", "Role was edited successfully", SweetAlertIcon.Success);
+    }
+
+    private async Task RemoveRole() {
+        if(!await ValidateEditRole())
+            return;
+
+        var roleDTO = new EditRolDTO() { Role = selectedRole, UserID = UserID };
+        await repository.RemovenRoleFromUser(roleDTO);
+        await swAl.FireAsync("Success", "Role was edited successfully", SweetAlertIcon.Success);
+    }
+}

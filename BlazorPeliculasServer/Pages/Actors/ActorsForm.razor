@@ -1,0 +1,53 @@
+﻿<EditForm Model="Actor" OnValidSubmit="OnValidSubmit">
+    <DataAnnotationsValidator />
+    <div class="mb-3">
+        <label>Name:</label>
+        <div>
+            <InputText class="form-control" @bind-Value="@Actor.Name" />
+            <ValidationMessage For="@(() => Actor.Name)" />
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label>Birthdate:</label>
+        <div>
+            <InputDate class="form-control" @bind-Value="@Actor.BirthDate" />
+            <ValidationMessage For="@(() => Actor.BirthDate)" />
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <InputImg Label="Photo" SelectedImage="SelectedImage" ImageURL="@ImageURL" />
+    </div>
+    <div class="mb-3 form-markdown">
+        <InputMD @bind-Value="@Actor.Bio"
+          For=@(() => Actor.Bio)
+          Label="Bio" />
+    </div>
+
+    <button class="btn btn-success" type="submit">Save changes</button>
+</EditForm>
+@code {
+    string? ImageURL;
+
+    protected override void OnInitialized() {
+        if (!string.IsNullOrEmpty(Actor.Photo)) {
+            ImageURL = Actor.Photo;
+            Actor.Photo = null;         //Al editar, seteamos el URL y limpiamos el dato.
+                                        //Si no se le carga uno nuevo, no será re-enviado.
+        }
+    }
+    private void SelectedImage (string imageBase64) {
+        Actor.Photo = imageBase64;
+        ImageURL = null;
+    }
+    //private EditContext editContext = null!;
+
+    [Parameter]
+    [EditorRequired]
+    public Actor Actor { get; set; } = null!;
+
+    [Parameter]
+    [EditorRequired]
+    public EventCallback OnValidSubmit { get; set; }
+}

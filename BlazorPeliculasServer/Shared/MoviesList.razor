@@ -1,0 +1,38 @@
+﻿@inject IJSRuntime js
+@inject MoviesRepository repository
+@inject SweetAlertService swAl
+
+<div style="display:flex;flex-wrap:wrap;align-items:center;">
+    <GenericList List="Movies">
+        <Loading>
+            @Loading
+        </Loading>
+        <NoRecords>
+            @NoRecords
+        </NoRecords>
+        <HasRecords Context="movie">
+            <MovieItem Movie="movie"
+               DeleteMovie="DeleteMovie"
+               @key="movie.ID"/>
+        </HasRecords>
+    </GenericList>
+</div>
+
+@code {
+    [Parameter]
+    [EditorRequired]
+    public List<Movie>? Movies { get; set; }
+    [Parameter]
+    public RenderFragment Loading { get; set; } = null!;
+    [Parameter]
+    public RenderFragment NoRecords { get; set; } = null!;
+
+    private async Task DeleteMovie(Movie movie) {
+        var confirmed = await js.Confirm($"Do you want to delete the movie '{movie.Title}'?");
+
+        if (confirmed) {
+            await repository.Delete(movie.ID);
+            Movies!.Remove(movie);
+        }
+    }
+}

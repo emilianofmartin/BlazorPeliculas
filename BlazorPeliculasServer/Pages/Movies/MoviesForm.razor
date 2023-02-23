@@ -1,0 +1,126 @@
+﻿@inject ActorsRepository repository
+
+<EditForm Model="Movie" OnValidSubmit="OnDataAnnotationsValidated">
+    <DataAnnotationsValidator />
+
+    <div class="mb-3">
+        <label>Title:</label>
+        <div>
+            <InputText class="form-control" @bind-Value="@Movie.Title" />
+            <ValidationMessage For="@(() => Movie.Title)" />
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label>On billboard:</label>
+        <div>
+            <InputCheckbox @bind-Value="@Movie.OnBillboard" />
+            <ValidationMessage For="@(() => Movie.OnBillboard)" />
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label>Trailer:</label>
+        <div>
+            <InputText class="form-control" @bind-Value="@Movie.Trailer" />
+            <ValidationMessage For="@(() => Movie.Trailer)" />
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label>Release date:</label>
+        <div>
+            <InputDate class="form-control" @bind-Value="@Movie.ReleaseDate" />
+            <ValidationMessage For="@(() => Movie.ReleaseDate)" />
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <InputImg Label="Poster" SelectedImage="SelectedImage" ImageURL="@ImageURL" />
+    </div>
+
+    <div class="mb-3 form-markdown">
+        <InputMD @bind-Value="@Movie.Summary"
+                 For=@(() => Movie.Summary)
+                 Label="Summary" />
+    </div>
+
+    <div class="mb-3">
+        <label>Genres:</label>
+        <div>
+            <MultipleSelector Selected="Selected" Unselected="Unselected"></MultipleSelector>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label>Actors:</label>
+        <div>
+            <MultipleSelectorTypeahead Context="Actor" SearchMethod="SearchActors"
+                SelectedElements="SelectedActors" NotFoundTemplate="No actors were found">
+                <ListTemplate>
+                    @Actor.Name / <input type="text" placeholder="Character" @bind="Actor.Character" />
+                </ListTemplate>
+                <ResultTemplate>
+                    <img style="width:50px;" src="@Actor.Photo" />
+                    @Actor.Name
+                </ResultTemplate>
+            </MultipleSelectorTypeahead>
+        </div>
+    </div>
+
+    <button class="btn btn-success" type="submit">Save changes</button>
+</EditForm>
+@code {
+    [Parameter]
+    [EditorRequired]
+    public Movie Movie { get; set; } = null!;
+
+    [Parameter]
+    [EditorRequired]
+    public EventCallback OnValidSubmit { get; set; }
+
+    [Parameter]
+    public List<Genre> SelectedGenres { get; set; } = new List<Genre>();
+    [Parameter]
+    [EditorRequired]
+    public List<Genre> UnselectedGenres { get; set; } = new List<Genre>();
+
+    [Parameter]
+    public List<Actor> SelectedActors { get; set; } = new List<Actor>();
+
+    private List<MultipleSelectorModel> Selected { get; set; } = new List<MultipleSelectorModel>();
+    private List<MultipleSelectorModel> Unselected { get; set; } = new List<MultipleSelectorModel>();
+
+    string? ImageURL;
+
+    protected override void OnInitialized() {
+        if(!string.IsNullOrEmpty(Movie.Poster)) {
+            ImageURL = Movie.Poster;
+            Movie.Poster = null;         //Al editar, seteamos el URL y limpiamos el dato.
+                                         //Si no se le carga uno nuevo, no será re-enviado.
+        }
+
+        Selected = SelectedGenres.Select(x => new MultipleSelectorModel(x.ID.ToString(), x.Name)).ToList();
+        Unselected = UnselectedGenres.Select(x => new MultipleSelectorModel(x.ID.ToString(), x.Name)).ToList();
+    }
+    private void SelectedImage(string imageBase64) {
+        Movie.Poster = imageBase64;
+        ImageURL = null;
+    }
+
+    private async Task<IEnumerable<Actor>> SearchActors(string searchText) {
+        return await repository.Get(searchText);
+    }
+
+    private async Task OnDataAnnotationsValidated() {
+        //Obtenemos el listado de géneros seleccionados recuperando los IDs (Key).
+        Movie.GenresMovie = Selected
+           .Select(x => new GenresMovie { GenreID = int.Parse(x.Key) }).ToList();
+
+        //Obtenemos el listado de actores seleccionados recuperando los IDs (ID) y los personajes de c/u.
+        Movie.MovieActor = SelectedActors
+           .Select(x => new MovieActor { ActorID = x.ID, Character = x.Character }).ToList();
+
+        await OnValidSubmit.InvokeAsync();
+    }
+}

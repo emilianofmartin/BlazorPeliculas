@@ -1,0 +1,31 @@
+﻿@page "/actors/edit/{ActorID:int}"
+@using Microsoft.AspNetCore.Authorization;
+@inject NavigationManager navManager
+@inject ActorsRepository repository
+@inject SweetAlertService swAl
+@attribute [Authorize(Roles = "admin")]
+<h3>Edit actor</h3>
+
+@if(Actor is not null) {
+    <ActorsForm Actor="Actor" OnValidSubmit="Edit" />
+}
+else {
+    <LoadingWheel/>
+}
+
+@code {
+    [Parameter] public int ActorID { get; set; }
+    Actor? Actor;
+
+    protected override async Task OnInitializedAsync() {
+        Actor = await repository.Get(ActorID);
+
+        if(Actor == null)
+            navManager.NavigateTo("actors");
+    }
+
+    private async Task Edit() {
+        await repository.Put(Actor);
+        navManager.NavigateTo("/actors");
+    }
+}

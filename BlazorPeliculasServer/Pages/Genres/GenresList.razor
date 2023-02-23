@@ -1,0 +1,52 @@
+﻿@page "/genres"
+@using Microsoft.AspNetCore.Authorization;
+@inject GenresRepository repository
+@inject NavigationManager navManager
+@inject SweetAlertService swAl
+@attribute [Authorize(Roles = "admin")]
+<h3>Genres</h3>
+
+<div class="mb-3">
+    <a class="btn btn-info" href="/genres/create">Add genre</a>
+</div>
+
+<GenericList List="Genres">
+    <HasRecordsComplete>
+        <table class="table table-stripped">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Name</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach(var item in Genres!) {
+                    <tr>
+                        <td>
+                            <a href="/genres/edit/@item.ID" class="btn btn-success">Edit</a>
+                            <button class="btn btn-danger" @onclick="@(() => Delete(item))">Delete</button>
+                        </td>
+                        <td>@item.Name</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </HasRecordsComplete>
+</GenericList>
+
+@code {
+    public List<Genre>? Genres { get; set; }
+
+    protected async override Task OnInitializedAsync() {
+        await Load();
+    }
+
+    private async Task Load() {
+        Genres = await repository.Get();
+    }
+
+    public async Task Delete(Genre genre) {
+        await repository.Delete(genre.ID);
+        await Load();
+    }
+}

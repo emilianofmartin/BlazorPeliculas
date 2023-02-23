@@ -1,0 +1,41 @@
+﻿@typeparam Titem
+@if (List is null) {
+    @if (Loading is null) {
+                <img alt="Loading"
+     src="https://upload.wikimedia.org/wikipedia/commons/b/b1/Loading_icon.gif?20151024034921" />
+    }
+    else {
+        @Loading
+    }
+}
+else if (List.Count == 0) {
+    @if (NoRecords is null) {
+                <p>No movies to show</p>
+    }
+    else {
+        @NoRecords
+    }
+}
+else {
+    if(HasRecords is not null)
+        foreach (var elem in List) {
+            @HasRecords(elem)
+        }
+    else {
+        @HasRecordsComplete
+    }
+}
+
+@code {
+    [Parameter]
+    public RenderFragment Loading { get; set; } = null!;
+    [Parameter]
+    public RenderFragment NoRecords { get; set; } = null!;
+    [Parameter]
+    public RenderFragment<Titem> HasRecords { get; set; } = null!;
+    [Parameter] public RenderFragment HasRecordsComplete { get; set; } = null!;
+
+    [Parameter]
+    [EditorRequired]
+    public List<Titem> List { get; set; } = null!;
+}

@@ -1,0 +1,64 @@
+﻿@page "/actors"
+@using Microsoft.AspNetCore.Authorization;
+@inject ActorsRepository repository
+@inject NavigationManager navManager
+@inject SweetAlertService swAl
+@attribute [Authorize(Roles = "admin")]
+<h3>Actors list</h3>
+
+<div class="mb-3">
+    <a href="actors/create" class="btn btn-info">Create actor</a>
+</div>
+
+<Pagination ActualPage="ActualPage"
+      TotalPages="TotalPages"
+      SelectedPage="SelectedPage" />
+
+<GenericList List="Actors">
+    <HasRecordsComplete>
+        <table class="table table-stripped">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Name</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Actors!) {
+                    <tr>
+                        <td>
+                            <a href="actors/edit/@item.ID" class="btn btn-success">Edit</a>
+                            <button class="btn btn-danger" @onclick="@(() => Delete(item))">Delete</button>
+                        </td>
+                        <td><img style="width:50px;" src="@item.Photo" />&nbsp;@item.Name</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </HasRecordsComplete>
+</GenericList>
+@code {
+    public List<Actor>? Actors { get; set; }
+    private int ActualPage = 1;
+    private int TotalPages;
+
+    protected async override Task OnInitializedAsync() {
+        await Load();
+    }
+
+    private async Task SelectedPage(int page) {
+        ActualPage = page;
+        await Load(page);
+    }
+
+    private async Task Load(int page = 1) {
+        var paginatedResponse = await repository.Get(new DTOs.PaginationDTO { Page = page });
+        Actors = paginatedResponse.Records;
+        TotalPages = paginatedResponse.totalPages;
+    }
+
+    public async Task Delete(Actor actor) {
+        await repository.Delete(actor.ID);
+        await Load();
+    }
+}

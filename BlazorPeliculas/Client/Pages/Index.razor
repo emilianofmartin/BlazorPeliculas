@@ -1,0 +1,47 @@
+﻿@page "/"
+@inject IRepository repository
+
+<PageTitle>Blazor Movies</PageTitle>
+<div>
+    <h3>On billboard</h3>
+    <div>
+        <MoviesList Movies="OnBoard">
+            <Loading>
+            <img alt="Loading"
+                 src="https://upload.wikimedia.org/wikipedia/commons/b/b1/Loading_icon.gif?20151024034921" />
+            </Loading>
+            <NoRecords>
+                <p>No movies to show</p>
+            </NoRecords>
+        </MoviesList>
+    </div>
+</div>
+<div>
+    <h3>Next releases</h3>
+    <div>
+        <MoviesList Movies="NextReleases">
+            <Loading>
+            <img alt="Loading"
+                 src="https://upload.wikimedia.org/wikipedia/commons/b/b1/Loading_icon.gif?20151024034921" />
+            </Loading>
+            <NoRecords>
+                <p>No movies to show</p>
+            </NoRecords>
+        </MoviesList>
+    </div>
+</div>
+
+@code {
+    public List<Movie>? OnBoard { get; set; }
+    public List<Movie>? NextReleases { get; set; }
+
+    protected override async Task OnInitializedAsync() {
+        var responseHTTP = await repository.Get<HomePageDTO>("api/movies");
+        if(responseHTTP.httpResponseMessage.IsSuccessStatusCode) {
+             OnBoard = responseHTTP.Response!.OnBoard;
+            NextReleases = responseHTTP.Response!.NextReleases;           
+        }
+        else
+            Console.WriteLine(responseHTTP.httpResponseMessage.StatusCode);
+    }
+}

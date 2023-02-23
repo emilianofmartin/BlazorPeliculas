@@ -1,0 +1,21 @@
+application/cache 
+AsposePDF/
+Azure Web App Test/
+BlazorAppTM/
+BlazorPeliculas0/
+BlazorPeliculas6/
+BlazorServer/
+OEWeb/
+PdfFilePrinter/
+Print2PDF/
+WebApplication1/
+publish.bat
+xcopy
+*/obj/
+*/bin/
+/BlazorPeliculas/Client/bin
+/BlazorPeliculas/Client/obj
+/BlazorPeliculas/Server/bin
+/BlazorPeliculas/Server/obj
+/BlazorPeliculas/Shared/bin
+/BlazorPeliculas/Shared/obj

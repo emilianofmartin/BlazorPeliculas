@@ -1,0 +1,17 @@
+﻿@page "/actors/create"
+@using Microsoft.AspNetCore.Authorization;
+@inject NavigationManager navManager
+@inject ActorsRepository repository
+@inject SweetAlertService swAl
+@attribute [Authorize(Roles = "admin")]
+<h3>Create Actor</h3>
+
+<ActorsForm OnValidSubmit="Create" Actor="Actor" />
+@code {
+    private Actor Actor = new Actor();
+
+    async Task Create() {
+        await repository.Post(Actor);
+        navManager.NavigateTo("/actors");
+    }
+}

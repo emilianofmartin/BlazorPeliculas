@@ -1,0 +1,32 @@
+﻿<div class="me-2 mb-2" style="text-align:center"> 
+    <a href="@urlViewMovie">
+        <img src="@Movie.Poster" alt="poster" style="width:225px;height:300px" />
+    </a>
+    <p style="max-width:225px;height:44px;font-size:15px;font-weight:bold;">
+        <a href="@urlViewMovie" class="text-decoration-none">@Movie.Title</a>
+    </p>
+    <AuthorizeView Roles="admin">
+        <div>
+            <a class="btn btn-info" href="@urlEditMovie">Edit</a>
+            <button type="button" class="btn btn-danger"
+                @onclick="@(() => DeleteMovie.InvokeAsync(Movie))">Delete</button>
+        </div>
+    </AuthorizeView>
+</div>
+
+@code {
+    [Parameter]
+    [EditorRequired]
+    public Movie Movie { get; set;  } = null!;
+    [Parameter]
+    public bool ShowButtons { get; set;  } = false;
+    [Parameter]
+    public EventCallback<Movie> DeleteMovie { get; set; }
+
+    private string urlViewMovie = string.Empty;
+    private string urlEditMovie = string.Empty;
+    protected override void OnInitialized() {
+        urlViewMovie = $"/movie/{Movie.ID}/{Movie.urlTitle()}";
+        urlEditMovie = $"/movie/edit/{Movie.ID}";
+    }
+}

@@ -1,0 +1,41 @@
+﻿@page "/"
+@inject MoviesRepository repository
+
+<PageTitle>Blazor Movies</PageTitle>
+<div>
+    <h3>On billboard</h3>
+    <div>
+        <MoviesList Movies="OnBoard">
+            <Loading>
+                <LoadingWheel />
+            </Loading>
+            <NoRecords>
+                <p>No movies to show</p>
+            </NoRecords>
+        </MoviesList>
+    </div>
+</div>
+<div>
+    <h3>Next releases</h3>
+    <div>
+        <MoviesList Movies="NextReleases">
+            <Loading>
+                <LoadingWheel />
+            </Loading>
+            <NoRecords>
+                <p>No movies to show</p>
+            </NoRecords>
+        </MoviesList>
+    </div>
+</div>
+
+@code {
+    public List<Movie>? OnBoard { get; set; }
+    public List<Movie>? NextReleases { get; set; }
+
+    protected override async Task OnInitializedAsync() {
+        var homePage = await repository.Get();
+        OnBoard = homePage.OnBoard;
+        NextReleases = homePage.NextReleases;
+    }
+}

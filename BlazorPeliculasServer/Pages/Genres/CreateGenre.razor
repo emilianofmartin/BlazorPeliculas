@@ -1,0 +1,28 @@
+﻿@page "/genres/create"
+@using Microsoft.AspNetCore.Authorization;
+@inject NavigationManager navManager
+@inject GenresRepository repository
+@inject SweetAlertService swAl
+@attribute [Authorize(Roles = "admin")]
+
+<h3>Create Genre</h3>
+
+<GenreForm @ref="genreForm" Genre="genre" OnValidSubmit="Create" />
+
+@code {
+    private Genre genre = new Genre();      //No se puede null, creamos un objeto vacío
+    private GenreForm? genreForm;
+
+    //No podemos llamarlo CreateGenre porque habría colisión con el nombre del componente.
+    private async Task Create() {
+        try {
+            await repository.Post(genre);        
+
+            genreForm!.formPostedCorrectly = true;
+            navManager.NavigateTo("/genres");
+        }
+        catch(Exception ex) {
+            await swAl.FireAsync("Error", ex.Message.ToString(), SweetAlertIcon.Error);
+        }
+    }
+}
