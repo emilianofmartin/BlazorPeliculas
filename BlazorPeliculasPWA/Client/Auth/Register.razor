@@ -1,0 +1,44 @@
+﻿@page "/Register"
+@inject NavigationManager navManager
+@inject IRepository repository
+@inject SweetAlertService swAl
+@inject ILoginService loginService
+
+<h3>Register</h3>
+<EditForm Model="userInfo" OnValidSubmit="CreateUser">
+    <DataAnnotationsValidator />
+    <div class="mb-3">
+        <label>Email:</label>
+        <div>
+            <InputText class="form-control" @bind-Value="userInfo.Email" />
+            <ValidationMessage For="@(() => userInfo.Email)" />
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label>Password:</label>
+        <div>
+            <InputText type="text" class="form-control" @bind-Value="userInfo.Password" />
+            <ValidationMessage For="@(() => userInfo.Password)" />
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Register</button>
+</EditForm>
+
+@code {
+    private UserInfoDTO userInfo = new UserInfoDTO();
+
+    private async Task CreateUser() {
+        var responseHTTP = await repository.Post<UserInfoDTO, UserTokenDTO>("api/accounts/create", userInfo);
+
+        if(responseHTTP.Error) {
+            var ErrMessage = await responseHTTP.GetErrMessage();
+            await swAl.FireAsync("Error", ErrMessage, SweetAlertIcon.Error);
+        }
+        else {
+            await loginService.Login(responseHTTP.Response!);
+            navManager.NavigateTo("");
+        }
+    }
+}

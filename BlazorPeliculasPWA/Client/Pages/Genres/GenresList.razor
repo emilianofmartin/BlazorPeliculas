@@ -1,0 +1,64 @@
+﻿@page "/genres"
+@using Microsoft.AspNetCore.Authorization;
+@inject IRepository repository
+@inject NavigationManager navManager
+@inject SweetAlertService swAl
+@attribute [Authorize(Roles = "admin")]
+<h3>Genres</h3>
+
+<div class="mb-3">
+    <a class="btn btn-info" href="/genres/create">Add genre</a>
+</div>
+
+<GenericList List="Genres">
+    <HasRecordsComplete>
+        <table class="table table-stripped">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Name</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach(var item in Genres!) {
+                    <tr>
+                        <td>
+                            <a href="/genres/edit/@item.ID" class="btn btn-success">Edit</a>
+                            <button class="btn btn-danger" @onclick="@(() => Delete(item))">Delete</button>
+                        </td>
+                        <td>@item.Name</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </HasRecordsComplete>
+</GenericList>
+
+@code {
+    public List<Genre>? Genres { get; set; }
+
+    protected async override Task OnInitializedAsync() {
+        await Load();
+    }
+
+    private async Task Load() {
+        var responseHTTP = await repository.Get<List<Genre>>("api/genres");
+        Genres = responseHTTP.Response!;
+    }
+
+    public async Task Delete(Genre genre) {
+        var responseHTTP = await repository.Delete($"api/genres/{genre.ID}");
+
+        if (responseHTTP.Error) {
+            if (responseHTTP.httpResponseMessage.StatusCode == System.Net.HttpStatusCode.NotFound)
+                navManager.NavigateTo("/");
+            else {
+                var ErrMessage = await responseHTTP.GetErrMessage();
+                await swAl.FireAsync("Error", ErrMessage, SweetAlertIcon.Error);
+            }
+        }
+        else {
+            await Load();
+        }
+    }
+}

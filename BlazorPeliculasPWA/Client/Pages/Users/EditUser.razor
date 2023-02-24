@@ -1,0 +1,69 @@
+﻿@page "/users/edit/{UserID}"
+@inject IRepository repository
+@inject NavigationManager navManager
+@inject SweetAlertService swAl
+
+<h3>Edit User</h3>
+
+@if(roles is null) {
+    <LoadingWheel/>
+}
+else {
+    <div class="form-inline">
+        <select class="form-select mb-2" @bind="selectedRole">
+            <option value="0">-- Select a rol--</option>
+            @foreach(var rol in roles) {
+            <option value="@rol.Name">@rol.Name</option>                
+            }
+        </select>
+
+        <button class="btn btn-info mb-2" @onclick="AssignRole">Assign rol</button>
+        <button class="btn btn-danger mb-2" @onclick="RemoveRole">Remove rol</button>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string UserID { get; set; } = null!;
+    private List<RoleDTO>? roles;
+    private string selectedRole = "0";
+
+    protected override async Task OnInitializedAsync() {
+        var responseHTTP = await repository.Get<List<RoleDTO>>("api/users/roles");
+
+        if(responseHTTP.Error) {
+            var ErrMessage = await responseHTTP.GetErrMessage();
+            await swAl.FireAsync("Error", ErrMessage, SweetAlertIcon.Error);
+        }
+        else {
+            roles = responseHTTP.Response;
+        }
+    }
+
+    private async Task EditRole(string url) {
+        if(selectedRole == "0") {
+            await swAl.FireAsync("Error", "You must select a role", SweetAlertIcon.Error);
+            return;
+        }
+
+        var roleDTO = new EditRolDTO() { Role = selectedRole, UserID = UserID };
+        var htttpResponse = await repository.Post<EditRolDTO>(url, roleDTO);
+
+        if(htttpResponse.Error) {
+            var ErrMessage = await htttpResponse.GetErrMessage();
+            await swAl.FireAsync("Error", ErrMessage, SweetAlertIcon.Error);
+        }
+        else {
+            await swAl.FireAsync("Success", "Role was edited successfully", SweetAlertIcon.Success);
+
+        }
+    }
+
+    private async Task AssignRole() {
+        await EditRole("api/users/assignRole");
+    }
+
+    private async Task RemoveRole() {
+        await EditRole("api/users/removeRole");
+    }
+}

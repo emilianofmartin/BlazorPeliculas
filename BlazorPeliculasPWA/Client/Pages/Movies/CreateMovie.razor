@@ -1,0 +1,40 @@
+﻿@page "/movies/create"
+@using Microsoft.AspNetCore.Authorization;
+@inject NavigationManager navManager
+@inject IRepository repository
+@inject SweetAlertService swAl
+@attribute [Authorize(Roles = "admin")]
+<h3>Create Movie</h3>
+
+@if(ShowForm) {
+<MoviesForm Movie="Movie" OnValidSubmit="Create" 
+    UnselectedGenres="Unselected"/>
+}
+else {
+<img alt="Loading"
+        src="https://upload.wikimedia.org/wikipedia/commons/b/b1/Loading_icon.gif?20151024034921" />
+}
+@code {
+    private Movie Movie = new Movie();
+    private List<Genre> Unselected = new List<Genre>();
+    public bool ShowForm { get; set; } = false;
+
+    protected async override Task OnInitializedAsync() {
+        var responseHTTP = await repository.Get<List<Genre>>("api/genres");
+        Unselected = responseHTTP.Response!;
+        ShowForm = true;
+    }
+
+    async Task Create() {
+        var httpResponse = await repository.Post<Movie, int>("api/movies", Movie);
+
+        if (httpResponse.Error) {
+            var ErrMessage = await httpResponse.GetErrMessage();
+            await swAl.FireAsync("Error", ErrMessage, SweetAlertIcon.Error);
+        }
+        else {
+            var movieID = httpResponse.Response;
+            navManager.NavigateTo($"/movie/{movieID}/{Movie.Title.Replace(" ", "-")}");
+        }
+    }
+}

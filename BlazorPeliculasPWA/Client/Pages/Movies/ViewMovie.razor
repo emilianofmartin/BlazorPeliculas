@@ -1,0 +1,84 @@
+﻿@page "/movie/{MovieID:int}"
+@page "/movie/{MovieID:int}/{MovieName}"
+@inject IRepository repository
+@inject SweetAlertService swAl
+
+@if(model is null) {
+    <LoadingWheel />
+}
+else {
+    <h2>@movie.Title (@movie.ReleaseDate!.Value.ToString("yyyy"))</h2>
+    @foreach(var genre in model.Genres) {
+        <a class="me-2 badge bg-primary rounded-pill text-decoration-none" href="movies/filter?genreid=@genre.ID">@genre.Name</a>
+    }
+
+    <span>| @movie.ReleaseDate!.Value.ToString("dd MM yyyy")
+          | Media: @model.VotesMedia.ToString("0.#")/5
+          | Your vote: <Rating MaxPoints="5" SelectedPoint="model.UserVote"
+          OnRating="OnRating"></Rating></span>
+
+    <div class="d-flex mt-2">
+        <span style="display:inline-block;" class="me-2">
+            <img src="@movie.Poster" style="width:225px;height:315px;"/>
+        </span>
+
+        <iframe width="560" height="315" src="https://www.youtube.com/embed/@movie.Trailer" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+    </div>
+    <div class="mt-2">
+        <h3>Summary</h3>
+        <div>
+            <ShowMD MDContent="@movie.Summary" />
+        </div>
+    </div>
+
+    <div class="mt-2">
+        <h3>Actors</h3>
+        <div class="d-flex flex-column">
+            @foreach(var actor in model.Actors) {
+                <div class="mb-2">
+                    <img style="width:50px;" src="@actor.Photo" />
+                    <span style="display:inline-block;width:200px;">@actor.Name</span>
+                    <span style="display:inline-block;width:45px;">...</span>
+                    <span>@actor.Character</span>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int MovieID { get; set; }
+    [Parameter] public string MovieName { get; set; } = null!;
+    private MovieViewDTO? model;
+    private Movie movie = null!;
+
+    protected override async Task OnInitializedAsync() {
+        var responseHTTP = await repository.Get<MovieViewDTO>($"api/movies/{MovieID}");
+
+        if (responseHTTP.Error) {
+            var ErrMessage = await responseHTTP.GetErrMessage();
+            await swAl.FireAsync("Error", ErrMessage, SweetAlertIcon.Error);
+        }
+        else {
+            model = responseHTTP.Response;
+            movie = model!.Movie;
+        }
+    }
+
+    private async Task OnRating(int selectedVote) {
+        model!.UserVote = selectedVote;
+        var voteMovieDTO = new VoteMovieDTO() {
+            MovieID = MovieID,
+            Voto = selectedVote
+        };
+
+        var responseHTTP = await repository.Post("api/votes", voteMovieDTO);
+
+        if(responseHTTP.Error) {
+            var ErrMessage = await responseHTTP.GetErrMessage();
+            await swAl.FireAsync("Error", ErrMessage, SweetAlertIcon.Error);
+        }
+        else
+            await swAl.FireAsync("Success!", "Your vote has been received.", SweetAlertIcon.Success);
+    }
+}

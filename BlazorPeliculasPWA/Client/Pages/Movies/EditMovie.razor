@@ -1,0 +1,58 @@
+﻿@page "/movie/edit/{MovieID:int}"
+@using Microsoft.AspNetCore.Authorization;
+@inject NavigationManager navManager
+@inject IRepository repository
+@inject SweetAlertService swAl
+@attribute [Authorize(Roles = "admin")]
+<h3>Edit Movie</h3>
+
+@if(Movie is not null) {
+<MoviesForm Movie="Movie" OnValidSubmit="Edit"
+            UnselectedGenres="Unselected"
+            SelectedGenres="Selected"
+            SelectedActors="SelectedActors"/>
+}
+else {
+    <LoadingWheel />
+}
+
+@code {
+    [Parameter] public int MovieID { get; set; }
+    private Movie? Movie;
+    private List<Genre> Unselected = new List<Genre>();
+    private List<Genre> Selected = new List<Genre>();
+    private List<Actor> SelectedActors = new List<Actor>();
+
+    protected override async Task OnInitializedAsync() {
+        var responseHTTP = await repository.Get<MovieUpdateDTO>($"api/movies/edit/{MovieID}");
+
+        if (responseHTTP.Error) {
+            if (responseHTTP.httpResponseMessage.StatusCode == System.Net.HttpStatusCode.NotFound)
+                navManager.NavigateTo("/");
+            else {
+                var ErrMessage = await responseHTTP.GetErrMessage();
+                await swAl.FireAsync("Error", ErrMessage, SweetAlertIcon.Error);
+            }
+        }
+        else {
+            MovieUpdateDTO model = responseHTTP.Response!;
+
+            Movie = model.Movie;
+            Unselected = model.UnselectedGenres;
+            Selected = model.SelectedGenres;
+            SelectedActors = model.Actors;
+        }
+    }
+
+    private async Task Edit() {
+        var responseHTTP = await repository.Put("/api/movies", Movie);
+
+        if (responseHTTP.Error) {
+            var ErrMessage = await responseHTTP.GetErrMessage();
+            await swAl.FireAsync("Error", ErrMessage, SweetAlertIcon.Error);
+        }
+        else {
+            navManager.NavigateTo($"/movie/{MovieID}");
+        }
+    }
+}

@@ -25,3 +25,15 @@ xcopy
 /BlazorWebAssemblyIdiomas/Server/obj
 /BlazorWebAssemblyIdiomas/Shared/bin
 /BlazorWebAssemblyIdiomas/Shared/obj
+/BlazorPWAPrueba/Client/bin
+/BlazorPWAPrueba/Client/obj
+/BlazorPWAPrueba/Server/bin
+/BlazorPWAPrueba/Server/obj
+/BlazorPWAPrueba/Shared/bin
+/BlazorPWAPrueba/Shared/obj
+/BlazorPeliculasPWA/Client/bin
+/BlazorPeliculasPWA/Client/obj
+/BlazorPeliculasPWA/Server/bin
+/BlazorPeliculasPWA/Server/obj
+/BlazorPeliculasPWA/Shared/bin
+/BlazorPeliculasPWA/Shared/obj
