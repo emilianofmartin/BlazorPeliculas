@@ -36,6 +36,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
           ClockSkew = TimeSpan.Zero
       }
     );
+builder.Services.AddScoped<NotificationsService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -62,6 +64,11 @@ app.UseAuthorization();
 
 app.MapRazorPages();
 app.MapControllers();
+app.MapGet("/api/config/noficationspublickey", async context => {
+    var configuration = context.RequestServices.GetRequiredService<IConfiguration>();
+    var publicKey = configuration.GetValue<string>("notifications:publicKey");
+    await context.Response.WriteAsync(publicKey!);
+});
 app.MapFallbackToFile("index.html");
 
 app.Run();

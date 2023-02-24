@@ -4,6 +4,9 @@
 @inject NavigationManager navManager
 @inject SweetAlertService swAl
 @attribute [Authorize(Roles = "admin")]
+@inject IJSRuntime js
+@inject PendingState pendingState
+
 <h3>Actors list</h3>
 
 <div class="mb-3">
@@ -58,18 +61,29 @@
     }
 
     public async Task Delete(Actor actor) {
-        var responseHTTP = await repository.Delete($"api/actors/{actor.ID}");
+        try {
+            var responseHTTP = await repository.Delete($"api/actors/{actor.ID}");
 
-        if (responseHTTP.Error) {
-            if (responseHTTP.httpResponseMessage.StatusCode == System.Net.HttpStatusCode.NotFound)
-                navManager.NavigateTo("/");
+            if (responseHTTP.Error) {
+                if (responseHTTP.httpResponseMessage.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    navManager.NavigateTo("/");
+                else {
+                    var ErrMessage = await responseHTTP.GetErrMessage();
+                    await swAl.FireAsync("Error", ErrMessage, SweetAlertIcon.Error);
+                }
+            }
             else {
-                var ErrMessage = await responseHTTP.GetErrMessage();
-                await swAl.FireAsync("Error", ErrMessage, SweetAlertIcon.Error);
+                await Load();
             }
         }
-        else {
-            await Load();
+        catch(Exception ex) {
+            if(ex.GetType().ToString() == "System.Net.Http.HttpRequestException") {
+                await js.saveDeleteRecord("api/actors/{actor.ID}");
+                await pendingState.NotifyUpdatePendingSynchronizations();
+                Actors!.Remove(actor);
+            }
+            else
+                throw ex;
         }
     }
 }

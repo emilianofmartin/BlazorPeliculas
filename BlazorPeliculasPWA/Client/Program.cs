@@ -1,5 +1,6 @@
 using BlazorPeliculas.Client;
 using BlazorPeliculas.Client.Auth;
+using BlazorPeliculas.Client.Helpers;
 using BlazorPeliculas.Client.Repositories;
 using CurrieTechnologies.Razor.SweetAlert2;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -20,6 +21,7 @@ void configureServices(IServiceCollection services) {
     Sin embargo, en tiempo de ejecución lo que se va a hacer es que se va a proveer una instancia de la clase Repository. */
     services.AddSweetAlert2();
     services.AddAuthorizationCore();
+    services.AddSingleton<PendingState>();
 
     services.AddScoped<JWTAuthProvider>();
     services.AddScoped<AuthenticationStateProvider, JWTAuthProvider>(provider =>

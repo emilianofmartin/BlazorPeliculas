@@ -1,0 +1,77 @@
+﻿@inject IJSRuntime js
+@inject IRepository repository
+@inject PendingState pendingState
+
+<div style="color:white; margin-bottom:1em; border-top:1px solid white;">
+    <div style="margin-left:5px;margin-top:5px;">
+        @if(synchronizing) {
+            <div>Synchronizing...</div>
+        }
+        else if(hasError) {
+            <div>Synchronizing failed.</div>
+            <button @onclick="SinchronizeClick">Re-try</button>
+        }
+        else {
+            <div>Pending synchronization: @pending</div>
+            @if(pending > 0) {
+                <button @onclick="SinchronizeClick">Syncrhonize</button>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    int pending = 0;
+    bool synchronizing = false;
+    bool hasError = false;
+
+    protected override async Task OnInitializedAsync() {
+        pendingState.OnUpdatePendingSynchronizations += updatePending;
+        await Sinchronize();
+    }
+
+    private async Task SinchronizeClick() {
+        await Sinchronize();
+    }
+
+    public async Task updatePending() {
+        pending = await js.GetPendingRecordCount();
+        StateHasChanged();
+    }
+
+    private async Task Sinchronize() {
+        var dbLocalRecords = await js.GetPendingRecords();
+
+        pending = dbLocalRecords.GetPending();
+        if(pending == 0)  return;   //No debería pasar nunca, si no hubiera, el botón no se vería.
+
+        synchronizing = true;
+        StateHasChanged();
+
+        try {
+            foreach(var entity in dbLocalRecords.ObjectsToCreate) {
+                var response = await repository.Post(entity.Url, entity.Body);
+                response.httpResponseMessage.EnsureSuccessStatusCode();
+
+                await js.deleteRecord("createStore", entity.Id);
+            }
+
+            foreach(var entity in dbLocalRecords.ObjectsToDelete) {
+                var response = await repository.Delete(entity.Url);
+                response.httpResponseMessage.EnsureSuccessStatusCode();
+
+                await js.deleteRecord("deleteStore", entity.Id);
+            }
+
+
+            hasError = false;
+            pending = 0;
+        }
+        catch(Exception ex) {
+            hasError = true;
+        }
+
+        synchronizing = false;
+        StateHasChanged();
+    }
+}

@@ -4,6 +4,9 @@
 @inject IRepository repository
 @inject SweetAlertService swAl
 @attribute [Authorize(Roles = "admin")]
+@inject IJSRuntime js
+@inject PendingState pendingState
+
 <h3>Create Actor</h3>
 
 <ActorsForm OnValidSubmit="Create" Actor="Actor" />
@@ -11,14 +14,25 @@
     private Actor Actor = new Actor();
 
     async Task Create() {
-        var httpResponse = await repository.Post("api/actors", Actor);
+        try {
+            var httpResponse = await repository.Post("api/actors", Actor);
 
-        if (httpResponse.Error) {
-            var ErrMessage = await httpResponse.GetErrMessage();
-            await swAl.FireAsync("Error", ErrMessage, SweetAlertIcon.Error);
+            if (httpResponse.Error) {
+                var ErrMessage = await httpResponse.GetErrMessage();
+                await swAl.FireAsync("Error", ErrMessage, SweetAlertIcon.Error);
+            }
+            else {
+                navManager.NavigateTo("/actors");
+            }
         }
-        else {
-            navManager.NavigateTo("/actors");
+        catch(Exception ex) {
+            if(ex.GetType().ToString() == "System.Net.Http.HttpRequestException") {
+                await js.saveCreateRecord("api/actors", Actor);
+                await pendingState.NotifyUpdatePendingSynchronizations();
+                navManager.NavigateTo("/actors");
+            }
+            else
+                throw ex;
         }
     }
 }

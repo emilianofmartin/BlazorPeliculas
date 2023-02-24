@@ -4,6 +4,8 @@
 @inject NavigationManager navManager
 @inject SweetAlertService swAl
 @attribute [Authorize(Roles = "admin")]
+@inject IJSRuntime js
+@inject PendingState pendingState
 <h3>Genres</h3>
 
 <div class="mb-3">
@@ -47,18 +49,29 @@
     }
 
     public async Task Delete(Genre genre) {
-        var responseHTTP = await repository.Delete($"api/genres/{genre.ID}");
+        try {
+            var responseHTTP = await repository.Delete($"api/genres/{genre.ID}");
 
-        if (responseHTTP.Error) {
-            if (responseHTTP.httpResponseMessage.StatusCode == System.Net.HttpStatusCode.NotFound)
-                navManager.NavigateTo("/");
+            if(responseHTTP.Error) {
+                if(responseHTTP.httpResponseMessage.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    navManager.NavigateTo("/");
+                else {
+                    var ErrMessage = await responseHTTP.GetErrMessage();
+                    await swAl.FireAsync("Error", ErrMessage, SweetAlertIcon.Error);
+                }
+            }
             else {
-                var ErrMessage = await responseHTTP.GetErrMessage();
-                await swAl.FireAsync("Error", ErrMessage, SweetAlertIcon.Error);
+                await Load();
             }
         }
-        else {
-            await Load();
+        catch(Exception ex) {
+            if(ex.GetType().ToString() == "System.Net.Http.HttpRequestException") {
+                await js.saveDeleteRecord("api/genres/{genre.ID}");
+                await pendingState.NotifyUpdatePendingSynchronizations();
+                Genres!.Remove(genre);
+            }
+            else
+                throw ex;
         }
     }
 }

@@ -1,7 +1,17 @@
 ﻿@page "/"
 @inject IRepository repository
+@inject IJSRuntime js
+@inject SweetAlertService swAl
+
 
 <PageTitle>Blazor Movies</PageTitle>
+
+@if(notificationsGrant == "granted") {
+    <button @onclick="Unsuscribe" class="btn btn-warning">Unsuscribe</button>
+}
+else if(notificationsGrant == "default") {
+    <button @onclick="Suscribe" class="btn btn-primary">Suscribe</button>
+}
 <div>
     <h3>On billboard</h3>
     <div>
@@ -34,14 +44,38 @@
 @code {
     public List<Movie>? OnBoard { get; set; }
     public List<Movie>? NextReleases { get; set; }
+    private string notificationsGrant = string.Empty;
 
     protected override async Task OnInitializedAsync() {
         var responseHTTP = await repository.Get<HomePageDTO>("api/movies");
         if(responseHTTP.httpResponseMessage.IsSuccessStatusCode) {
-             OnBoard = responseHTTP.Response!.OnBoard;
-            NextReleases = responseHTTP.Response!.NextReleases;           
+            OnBoard = responseHTTP.Response!.OnBoard;
+            NextReleases = responseHTTP.Response!.NextReleases;
+            notificationsGrant = await js.GetStatusNotificationGrant();
         }
         else
             Console.WriteLine(responseHTTP.httpResponseMessage.StatusCode);
+    }
+
+    private async Task Suscribe() {
+        var notification = await js.SuscribeUser();
+
+        if(notification != null) {
+            await repository.Post("api/notifications/suscribe", notification);
+            notificationsGrant = await js.GetStatusNotificationGrant();
+            await swAl.FireAsync("Success", "You'll get a notification when a new movie is on billboard", SweetAlertIcon.Success);
+            StateHasChanged();
+        }
+    }
+
+    private async Task Unsuscribe() {
+        var notification = await js.UnsuscribeUser();
+
+        if(notification != null) {
+            await repository.Post("api/notifications/unsuscribe", notification);
+            notificationsGrant = await js.GetStatusNotificationGrant();
+            await swAl.FireAsync("Success", "You'll not get a notification when a new movie is on billboard anymore", SweetAlertIcon.Success);
+            StateHasChanged();
+        }
     }
 }

@@ -5,6 +5,7 @@
 <PageTitle>Weather forecast</PageTitle>
 
 <h1>Weather forecast</h1>
+<h2>@message</h2>
 
 <p>This component demonstrates fetching data from the server.</p>
 
@@ -39,9 +40,18 @@ else
 
 @code {
     private WeatherForecast[]? forecasts;
+    string message = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
-        forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("WeatherForecast");
+        try {
+            forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("WeatherForecast");
+        }
+        catch(Exception ex) {
+            if(ex.GetType().ToString() == "System.Net.Http.HttpRequestException") {
+                //No se pudo comunicar con el servidor.
+                message = "A connection error to the server has ocurred.";
+            }
+        }
     }
 }
