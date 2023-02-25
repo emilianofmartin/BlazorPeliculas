@@ -79,3 +79,7 @@ async function getAndUpdate(event) {
         return cache.match(event.request);
     }
 }
+
+self.addEventListener('push', event => {
+
+})

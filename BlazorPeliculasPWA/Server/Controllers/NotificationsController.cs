@@ -1,14 +1,12 @@
 ﻿using BlazorPeliculas.Shared.Entities;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BlazorPeliculas.Server.Controllers {
-    [Microsoft.AspNetCore.Components.Route("api/notifications"), ApiController]
+    [ApiController, Route("api/notifications")]
     public class NotificationsController: ControllerBase {
         private readonly ApplicationDbContext context;
 
-        public NotificationsController(ApplicationDbContext context)
-        {
+        public NotificationsController(ApplicationDbContext context) {
             this.context = context;
         }
 
