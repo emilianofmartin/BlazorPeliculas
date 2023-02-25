@@ -15,7 +15,7 @@ namespace BlazorPeliculas.Server.Helpers {
         }
 
         public async Task SendNotificationMovieOnBoard(Movie movie) {
-            var notifications = await context.Notifications.ToListAsync();
+            var notifications = await context.Notifs.ToListAsync();
 
             var publicKey = configuration.GetValue<string>("notifications:publicKey");
             var privateKey = configuration.GetValue<string>("notifications:privateKey");
@@ -24,7 +24,7 @@ namespace BlazorPeliculas.Server.Helpers {
             var vapidDetails = new VapidDetails(subject, publicKey, privateKey);
 
             foreach(var notification in notifications) {
-                var pushSubscription = new PushSubscription(notification.URL, notification.P256h, notification.Auth);
+                var pushSubscription = new PushSubscription(notification.URL, notification.P256dh, notification.Auth);
 
                 var webPushClient = new WebPushClient();
 
@@ -32,7 +32,7 @@ namespace BlazorPeliculas.Server.Helpers {
                     var payload = JsonSerializer.Serialize(new {
                         title = movie.Title,
                         image = movie.Poster,
-                        url = $"movie/{movie.ID}/{movie.urlTitle}"
+                        url = $"movie/{movie.ID}/{movie.urlTitle()}"
                     });
 
                     await webPushClient.SendNotificationAsync(pushSubscription, payload, vapidDetails);

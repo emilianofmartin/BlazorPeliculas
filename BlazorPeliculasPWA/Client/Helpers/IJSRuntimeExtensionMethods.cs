@@ -10,12 +10,12 @@ namespace BlazorPeliculas.Client.Helpers {
             return await js.InvokeAsync<string>("getStatusNotificationGrant");
         }
 
-        public static async ValueTask<Notification> SuscribeUser(this IJSRuntime js) {
-            return await js.InvokeAsync<Notification>("suscribeUser");
+        public static async ValueTask<Notif> SuscribeUser(this IJSRuntime js) {
+            return await js.InvokeAsync<Notif>("suscribeUser");
         }
 
-        public static async ValueTask<Notification> UnsuscribeUser(this IJSRuntime js) {
-            return await js.InvokeAsync<Notification>("unsuscribeUser");
+        public static async ValueTask<Notif> UnsuscribeUser(this IJSRuntime js) {
+            return await js.InvokeAsync<Notif>("unsuscribeUser");
         }
         public static async ValueTask<DbLocalRecords> GetPendingRecords(this IJSRuntime js) {
             return await js.InvokeAsync<DbLocalRecords>("getPendingRecords");

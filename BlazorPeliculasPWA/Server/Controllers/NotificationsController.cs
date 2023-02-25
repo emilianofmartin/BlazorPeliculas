@@ -11,16 +11,16 @@ namespace BlazorPeliculas.Server.Controllers {
         }
 
         [HttpPost("suscribe")]
-        public async Task<ActionResult> Suscribe(Notification notification) {
+        public async Task<ActionResult> Suscribe(Notif notification) {
             context.Add(notification);
             await context.SaveChangesAsync();
             return NoContent();
         }
 
         [HttpPost("unsuscribe")]
-        public async Task<ActionResult> Unsuscribe(Notification notification) {
-            var notificationDB = context.Notifications
-                .FirstOrDefault(x => x.Auth == notification.Auth && x.P256h == notification.P256h);
+        public async Task<ActionResult> Unsuscribe(Notif notification) {
+            var notificationDB = context.Notifs
+                .FirstOrDefault(x => x.Auth == notification.Auth && x.P256dh == notification.P256dh);
 
             if (notificationDB == null) return NotFound();
 

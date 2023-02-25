@@ -47,7 +47,7 @@ async function onFetch(event) {
     const cache = await caches.open(cacheName);
     cachedResponse = await cache.match(request);
 
-    if(cachedResponse) {
+    if (cachedResponse) {
         //Existe informacion estática cacheada. La retornaremos.
         return cachedResponse;
     }
@@ -63,10 +63,10 @@ async function getAndUpdate(event) {
         const contentType = response.headers.get('content-type');
 
         let saveInCache = true;
-        if(contentType)
+        if (contentType)
             saveInCache = !contentType.includes('text/html');
 
-        if(saveInCache) {
+        if (saveInCache) {
             const cache = await caches.open(cacheNameDynamic);
             await cache.put(event.request, response.clone());
         }
@@ -74,8 +74,25 @@ async function getAndUpdate(event) {
         return response;
     }
     catch {
-        //Si hay un error, no pudimos establecer la conexión
+        //Si hay un error, no pudimos establecer la conexion
         const cache = await caches.open(cacheNameDynamic);
         return cache.match(event.request);
     }
 }
+
+self.addEventListener('push', event => {
+    const payload = event.data.json();  //info que le mandamos al navegador a traves del payload.
+
+    event.waitUntil(
+        self.registration.showNotification('New movie on cinemas', {
+            body: payload.title,
+            image: payload.image,
+            data: { url: payload.url }
+        })
+    );
+});
+
+self.addEventListener('notificationclick', event => {
+    event.notification.close();
+    event.waitUntil(clients.openWindow(event.notification.data.url));
+});

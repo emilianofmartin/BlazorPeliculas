@@ -21,5 +21,6 @@ namespace BlazorPeliculas.Server {
         public DbSet<MovieActor> MoviesActors => Set<MovieActor>();  //Creamos la tabla MoviesActors a partir de la clase MovieActor.
         public DbSet<VoteMovie> VotesMovies => Set<VoteMovie>();  //Creamos la tabla VotesMovies a partir de la clase VoteMovie.
         public DbSet<Notification> Notifications => Set<Notification>();  //Creamos la tabla Notifications a partir de la clase Notification.
+        public DbSet<Notif> Notifs => Set<Notif>();  //Creamos la tabla Notifs a partir de la clase Notif.
     }
 }

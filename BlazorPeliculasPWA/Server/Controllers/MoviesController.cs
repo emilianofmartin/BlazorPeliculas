@@ -17,16 +17,19 @@ namespace BlazorPeliculas.Server.Controllers {
         private readonly IFileSaver fileSaver;
         private readonly IMapper mapper;
         private readonly UserManager<IdentityUser> userManager;
+        private readonly NotificationsService notificationsService;
         private readonly string container = "movies";
 
         public MoviesController(ApplicationDbContext context,
             IFileSaver fileSaver,
             IMapper mapper,
-            UserManager<IdentityUser> userManager) {
+            UserManager<IdentityUser> userManager,
+            NotificationsService notificationsService) {
             this.context = context;
             this.fileSaver = fileSaver;
             this.mapper = mapper;
             this.userManager = userManager;
+            this.notificationsService = notificationsService;
         }
 
         [HttpGet, AllowAnonymous]
@@ -150,7 +153,7 @@ namespace BlazorPeliculas.Server.Controllers {
             //Re-utilizamos el GET para traer el ActionResult con la info de la película.
             var movieActionResult = await Get(id);
 
-            if (movieActionResult.Result is NotFoundResult)
+            if(movieActionResult.Result is NotFoundResult)
                 return NotFound();
 
             var movieViewDTO = movieActionResult.Value;        //Será el DTO
@@ -200,6 +203,8 @@ namespace BlazorPeliculas.Server.Controllers {
             if (movieDB is null)
                 return NotFound();
 
+            var sendNotification = movie.OnBillboard == true || movieDB.OnBillboard == false;
+
             //Tomá las propiedades de movie y pasalas a movieDB
             movieDB = mapper.Map(movie, movieDB);
 
@@ -212,6 +217,10 @@ namespace BlazorPeliculas.Server.Controllers {
             WriteActorsOrder(movieDB);
 
             await context.SaveChangesAsync();   //Se hace el UPDATE
+
+            if(sendNotification)
+                await notificationsService.SendNotificationMovieOnBoard(movieDB);
+
             return NoContent();            //Todo se hizo correctamente
         }
 
