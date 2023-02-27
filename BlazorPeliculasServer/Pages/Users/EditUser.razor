@@ -29,7 +29,7 @@ else {
     private string selectedRole = "0";
 
     protected override async Task OnInitializedAsync() {
-        var roles = await repository.GetRoles();
+        roles = await repository.GetRoles();
     }
 
     private async Task<bool> ValidateEditRole() {
